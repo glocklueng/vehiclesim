@@ -5,8 +5,23 @@ sim.dt = 0.001;
 param.g = 9.81;
 param.air_p = 1.15; %in lincoln
 
-nonideal.corner_traction = 1;
+nonideal.corner_traction = 0.99;
 nonideal.uniform_braking = 0.95;
+
+report.name_a = 'Car mass';
+report.data_a = 260;%[240,260,280,300];
+report.name_b = 'COF longitude';
+report.data_b = 1.4;%[1.2,1.3,1.4,1.5,1.6,1.7,1.8];
+report.name_c = 'Max torque';
+report.data_c = 800;%[500,600,700,800,900,1000];
+report.index = 0;
+report.table = zeros(length(report.data_a)*length(report.data_b)*length(report.data_c),5);
+
+number_of_laps = 2;
+log.activate = 1;
+log.number_of_laps = 1;
+log.lap_data = zeros(4,400000); %very large
+log.lap_data_index = 1;
 
 track.input = [
  0, 037.700, 000.000;
@@ -34,53 +49,39 @@ track.input = [
 -1, 016.000, 013.700;
  1, 011.100, 012.400;
 -1, 012.300, 015.900;
- 1, 016.100, 022.900;
--1, 008.100, 015.000;
- 0, 011.000, 000.000;
- 1, 031.900, 013.900;
--1, 035.200, 039.100;
- 0, 013.100, 000.000;
- 1, 051.100, 025.600;
- 1, 023.000, 052.000;
- 1, 032.300, 019.500;
- 0, 010.100, 000.000;
--1, 012.800, 010.000;
--1, 029.700, 028.700;
- 0, 030.700, 000.000;
- 1, 012.300, 017.300;
--1, 018.400, 008.800;
- 0, 061.600, 000.000;
- 1, 019.900, 020.500;
--1, 014.200, 008.100;
- 1, 029.700, 022.500;
- 0, 017.600, 000.000;
--1, 047.200, 017.200;
--1, 025.300, 020.900;
- 0, 006.300, 000.000;
- 1, 016.000, 010.900;
- 0, 005.900, 000.000;
--1, 012.800, 009.700;
- 1, 020.000, 010.000;
- 1, 022.600, 018.600;
- 0, 013.600, 000.000;];
+016.100, 022.900;
+008.100, 015.000;
+011.000, 000.000;
+031.900, 013.900;
+035.200, 039.100;
+013.100, 000.000;
+051.100, 025.600;
+023.000, 052.000;
+032.300, 019.500;
+010.100, 000.000;
+012.800, 010.000;
+029.700, 028.700;
+030.700, 000.000;
+012.300, 017.300;
+018.400, 008.800;
+061.600, 000.000;
+019.900, 020.500;
+014.200, 008.100;
+029.700, 022.500;
+017.600, 000.000;
+047.200, 017.200;
+025.300, 020.900;
+006.300, 000.000;
+016.000, 010.900;
+005.900, 000.000;
+012.800, 009.700;
+020.000, 010.000;
+022.600, 018.600;
+013.600, 000.000;];
 
-report.name_a = 'Car mass';
-report.data_a = 260;%[240,260,280,300];
-report.name_b = 'COF longitude';
-report.data_b = 1.4;%[1.2,1.3,1.4,1.5,1.6,1.7,1.8];
-report.name_c = 'Max torque';
-report.data_c = 800;%[500,600,700,800,900,1000];
-report.index = 0;
-report.table = zeros(length(report.data_a)*length(report.data_b)*length(report.data_c),5);
-
-number_of_laps = 2;
-log.activate = 1;
-log.number_of_laps = 1;
-log.lap_data = zeros(4,200000,log.number_of_laps); %very large
-log.lap_data_index = 1;
 
 track.data = zeros(length(track.input(:,1)),4);
-track.data(:,1:2) = track.input(:,2:3);
+track.data(:,1:2) = track.input;
 
 for a = 1:length(report.data_a)
     for b = 1:length(report.data_b)
@@ -298,5 +299,11 @@ for a = 1:length(report.data_a)
         end
     end
 end
+% hold off;
+% figure(1);
+% plot(sim.state(2,:)*3.6,report.traction_limit_f(:),sim.state(2,:)*3.6,report.traction_limit_r(:));
+% plot(sim.state(2,:)*3.6,report.force_output(:), sim.state(2,:)*3.6,report.traction_limit(:),sim.state(2,:)*3.6,report.motor_power(:));
+% figure(2);
+% plot(sim.state(2,:)*3.6,report.power_output(:));
 
 
