@@ -36,7 +36,8 @@ switch nargin
 end
 torque.max = min(((speed.*motorData.emfC)./(motorData.terminalResistance *2)),motorData.maxCurrent).*motorData.torqueC;
 torque.continuous = min(((speed.*motorData.emfC)./(motorData.terminalResistance *2)),motorData.continuousCurrent).*motorData.torqueC;
-
+torque.max = min(torque.max,torqueLimit)
+torque.continuous(torque.continuous,torqueLimit)
 
 power.max = (min(torque.max,torqueLimit)/motorData.torqueC)* ((motorData.emfC*speed)- (min(torque.max,torqueLimit)/motorData.torqueC)*motorData.terminalResistance)
 power.continuous = (min(torque.continuous,torqueLimit)/motorData.torqueC)* ((motorData.emfC*speed)- (min(torque.continuous,torqueLimit)/motorData.torqueC)*motorData.terminalResistance)
