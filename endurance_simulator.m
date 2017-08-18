@@ -187,7 +187,7 @@ for a = 1:length(report.data_a)
                 %run forwards accross the whole track segment, will
                 %figure out braking if we are too fast going into the
                 %next segment
-                while sim.state_p(3) < (track.traversed + track.data(track.track_i,1))
+                while sim.state_p(3) < track.data(track.track_i,1)
                     if track.data(track.track_i,2) ~= 0 %Calculate things for this timestep
                         calc.f_lat = car.m*sim.state_p(2)^2/track.data(track.track_i,2);
                     else
@@ -220,6 +220,7 @@ for a = 1:length(report.data_a)
                     %add to report, finished
                     if log.activate == 1
                         log.lap_data(1:3,log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(:,1:sim.state_index_f);
+                        log.lap_data(4,  log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(3,1:sim.state_index_f)+track.traversed;
                         log.lap_data_index = log.lap_data_index+sim.state_index_f;
                     end
                     %we are done here
@@ -228,7 +229,7 @@ for a = 1:length(report.data_a)
                 %the maximum section transfer speed.
                 elseif and(track.data(mod(track.track_i,length(track.data(:,1)))+1,3) ~= 0, sim.state_c(2) >= track.data(mod(track.track_i,length(track.data(:,1)))+1,3))
                     %we need to brake before entering the next track section
-                    sim.state_c = [0;track.data(mod(track.track_i,length(track.data(:,1)))+1,3);track.traversed+track.data(track.track_i,1)];
+                    sim.state_c = [0;track.data(mod(track.track_i,length(track.data(:,1)))+1,3);track.data(track.track_i,1)];
                     sim.state_p = sim.state_c;
 
                     while sim.state_p(3) > 0
@@ -270,27 +271,31 @@ for a = 1:length(report.data_a)
                     %fix counter
                     sim.state_index_r = sim.state_index_r - 1;
                     %initialize next inital velocity
-                    sim.state_p(2) = sim.state_block_r(2,1);
+                    sim.state_p = [0;sim.state_block_r(2,1);0];
                     sim.state_c = sim.state_p;
                     %add to report, with braking
                     if log.activate == 1
                         log.lap_data(1:3,log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(:,1:sim.state_index_f);
+                        log.lap_data(4,  log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(3,1:sim.state_index_f)+track.traversed;
                         log.lap_data_index = log.lap_data_index+sim.state_index_f;
                         log.lap_data(1:3,log.lap_data_index:(log.lap_data_index+sim.state_index_r-1)) = fliplr(sim.state_block_r(:,1:sim.state_index_r));
+                        log.lap_data(4,  log.lap_data_index:(log.lap_data_index+sim.state_index_r-1)) = fliplr(sim.state_block_r(3,1:sim.state_index_r))+track.traversed;
                         log.lap_data_index = log.lap_data_index+sim.state_index_r;
                     end
                 else %no braking was required before next segment
                     %initialize next inital velocity
-                    sim.state_p(2) = sim.state_block_f(2,sim.state_index_f);
+                    sim.state_p = [0;sim.state_block_f(2,sim.state_index_f);0];
                     sim.state_c = sim.state_p;
                     %add to report, without braking section
                     if log.activate == 1
                         log.lap_data(1:3,log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(:,1:sim.state_index_f);
+                        log.lap_data(4,  log.lap_data_index:(log.lap_data_index+sim.state_index_f-1)) = sim.state_block_f(3,1:sim.state_index_f)+track.traversed;
                         log.lap_data_index = log.lap_data_index+sim.state_index_f;
                     end
                 end
                 track.traversed = track.traversed + track.data(track.track_i,1);
-            end   
+            end
+            log.lap_data = log.lap_data(:,1:log.lap_data_index-1);
         end
     end
 end
