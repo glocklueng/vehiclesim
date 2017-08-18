@@ -41,43 +41,60 @@ for a = 1:length(report.data_a)
             report.table(report.index,3) = report.data_c(c);
             
             %[acceleration, velocity, displacment]
-            sim.state_i = [0;0;0];
-            sim.state = zeros(length(sim.state_i),(sim.len/sim.dt));
-            sim.state(:,1) = sim.state_i;
+            %point mass
+            sim.state_p_i = [0;0;0];
+            sim.state_p = zeros(length(sim.state_p_i),(sim.len/sim.dt));
+            sim.state_p(:,1) = sim.state_p_i;
+            %bicycle model
+            sim.state_b_i = [0;0;0];
+            sim.state_b = zeros(length(sim.state_b_i),(sim.len/sim.dt));
+            sim.state_b(:,1) = sim.state_b_i;
 
-            for i = 2:length(sim.state);
+            for i = 2:(sim.len/sim.dt);
 
-                calc.f_down  = (0.5*param.air_p*car.a_f*car.c_df*sim.state(2,i-1)^2);
-                calc.f_drag  = (0.5*param.air_p*car.a_f*car.c_d*sim.state(2,i-1)^2);
+                calc.f_down_b  = (0.5*param.air_p*car.a_f*car.c_df*sim.state_b(2,i-1)^2);
+                calc.f_drag_b  = (0.5*param.air_p*car.a_f*car.c_d *sim.state_b(2,i-1)^2);
+                calc.f_down_p  = (0.5*param.air_p*car.a_f*car.c_df*sim.state_p(2,i-1)^2);
+                calc.f_drag_p  = (0.5*param.air_p*car.a_f*car.c_d *sim.state_p(2,i-1)^2);
 
-                calc.wt = car.m*sim.state(1,i-1)*car.cg/car.wb;
-                calc.f_frict_f = car.u_long*(param.g*car.m*(1-car.swd)+calc.f_down*(1-car.cp)-calc.wt);
-                calc.f_frict_r = car.u_long*(param.g*car.m*(car.swd)+calc.f_down*(car.cp)+calc.wt);
-
-                calc.f_motor = min(car.t_max/car.r_tire, car.p_max/sim.state(2,i-1));
+                calc.wt = car.m*sim.state_b(1,i-1)*car.cg/car.wb;
+                calc.f_frict_f = car.u_long*(param.g*car.m*(1-car.swd)+calc.f_down_b*(1-car.cp)-calc.wt);
+                calc.f_frict_r = car.u_long*(param.g*car.m*(car.swd)+calc.f_down_b*(car.cp)+calc.wt);
+                calc.f_frict   = car.u_long*(param.g*car.m+calc.f_down_p);
+                
+                calc.f_motor_b = min(car.t_max/car.r_tire, car.p_max/sim.state_b(2,i-1));
+                calc.f_motor_p = min(car.t_max/car.r_tire, car.p_max/sim.state_p(2,i-1));
+                
                 calc.f_cp_f = min(calc.f_frict_f);
-                calc.f_cp_r = min(calc.f_frict_r,calc.f_motor);
+                calc.f_cp_r = min(calc.f_frict_r,calc.f_motor_b);
+                calc.f_cp   = min(calc.f_frict/2,calc.f_motor_p);
 
-                sim.state(1,i) = (calc.f_cp_r-calc.f_drag)/car.m;
-                sim.state(2,i) = sim.state(2,i-1) + sim.state(1,i-1)*sim.dt;
-                sim.state(3,i) = sim.state(3,i-1) + sim.state(2,i-1)*sim.dt;
+                sim.state_b(1,i) = (calc.f_cp_r-calc.f_drag_b)/car.m;
+                sim.state_b(2,i) = sim.state_b(2,i-1) + sim.state_b(1,i-1)*sim.dt;
+                sim.state_b(3,i) = sim.state_b(3,i-1) + sim.state_b(2,i-1)*sim.dt;
+                
+                sim.state_p(1,i) = (calc.f_cp-calc.f_drag_p)/car.m;
+                sim.state_p(2,i) = sim.state_p(2,i-1) + sim.state_p(1,i-1)*sim.dt;
+                sim.state_p(3,i) = sim.state_p(3,i-1) + sim.state_p(2,i-1)*sim.dt;
 
-                report.force_output(report.index,i) = calc.f_cp_r;
-                report.power_output(report.index,i) = calc.f_cp_r*sim.state(2,i);
-                report.traction_limit_r(report.index,i) = calc.f_frict_r;
-                report.traction_limit_f(report.index,i) = calc.f_frict_f;
-                report.motor_power(report.index,i) = calc.f_motor;
+                report.force_output_b(report.index,i) = calc.f_cp_r;
+                report.force_output_p(report.index,i) = calc.f_cp;
+                
+                report.traction_limit_b(report.index,i) = calc.f_frict_r;
+                report.traction_limit_p(report.index,i) = calc.f_frict/2;
+                
+                report.motor_power_b(report.index,i) = calc.f_motor_b;
+                report.motor_power_p(report.index,i) = calc.f_motor_p;
             end
 
-            for i = 1:length(sim.state)
-                if sim.state(2,i) >= 27.78
+            for i = 1:(sim.len/sim.dt)
+                if sim.state_p(3,i) >= 75
                     report.table(report.index,4) = i/1000;
                     break
                 end
             end
-
-            for i = 1:length(sim.state)
-                if sim.state(3,i) >= 75
+            for i = 1:(sim.len/sim.dt)
+                if sim.state_b(3,i) >= 75
                     report.table(report.index,5) = i/1000;
                     break
                 end
@@ -86,8 +103,10 @@ for a = 1:length(report.data_a)
         end
     end
 end
-figure(1);
-plot(sim.state(2,:)*3.6,report.force_output(1,:));
+figure('name','Bicycle Model');
+plot(sim.state_b(2,:)*3.6,report.force_output_b(1,:), sim.state_b(2,:)*3.6,report.traction_limit_b(1,:), sim.state_b(2,:)*3.6,report.motor_power_b(1,:));
+figure('name','Point Mass Model');
+plot(sim.state_p(2,:)*3.6,report.force_output_p(1,:), sim.state_p(2,:)*3.6,report.traction_limit_p(1,:), sim.state_p(2,:)*3.6,report.motor_power_p(1,:));
 
 
 

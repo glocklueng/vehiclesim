@@ -64,7 +64,7 @@ track.input = [
  1, 022.600, 018.600;
  0, 013.600, 000.000;];
 
-track.number_of_laps = 16;
+track.number_of_laps = 19;
 track.data = zeros(length(track.input(:,1)),4);
 track.data(:,1:2) = track.input(:,2:3);
 track.traversed = 0;
@@ -197,7 +197,7 @@ for a = 1:length(report.data_a)
                         else
                             calc.f_lat = 0;
                         end
-                        %calc.wt = car.m*sim.state_p(1)*car.cg/car.wb;%Weight transfer, used for friction calc
+                        %calc.wt = cagr.m*sim.state_p(1)*car.cg/car.wb;%Weight transfer, used for friction calc
                         calc.f_down  = (0.5*param.air_p*car.a_f*car.c_df*sim.state_p(2)^2);
                         calc.f_n = param.g*car.m+calc.f_down;
                         %calc.f_n_f = param.g*car.m*(1-car.swd)+calc.f_down*(1-car.cp)-calc.wt;
