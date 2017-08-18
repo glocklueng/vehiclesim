@@ -113,9 +113,9 @@ for a = 1:length(report.data_a)
             %radius of curvature, then make sure that those speed can be
             %reached by reverse brakinging from each segment backwards
             %around the track until the steady state solution is found
+            
             eqn = ((0.5*car.m*v^2/r)/(0.5*car.u_lat*(car.m*param.g+0.5*param.air_p*car.a_f*car.c_df*v^2)))^2 + ((0.5*param.air_p*car.a_f*car.c_d*v^2)/(0.5*car.u_long*(car.m*param.g+0.5*param.air_p*car.a_f*car.c_df*v^2)))^2 == nonideal.corner_traction;
             eqn = solve(eqn,v);
-            
             for i = 1:length(track.data(:,1))
                 if track.data(i,2) ~= 0
                     track.data(i,3) = max(real(double(subs(eqn,r,track.data(i,2)))));
