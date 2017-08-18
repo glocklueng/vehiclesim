@@ -1,6 +1,9 @@
-clear all
+
+
+clear x y speed data;
 close all
 
+data = log.lap_data;
 trackPoints = 10000;
 track.input = [
  0, 037.700, 000.000;
@@ -71,10 +74,11 @@ trackSegment = 1;
 
 for i = 2:trackPoints
     
-    lastPos = [x(i-1);y(i-1)]
+    lastPos = [x(i-1);y(i-1)];
     
     lengthTravledTotal = lengthTravledTotal + lenthIncrement;
     lengthTravledSegment = lengthTravledSegment + lenthIncrement;
+    displacment(i) = lengthTravledTotal;
     
     if lengthTravledSegment> track.input(trackSegment,2)
         lengthTravledSegment = lengthTravledSegment - track.input(trackSegment,2);
@@ -105,13 +109,15 @@ for i = 2:trackPoints
             currentBearing = currentBearing - angle;
         end
     end
+    [accuracy index] = min(abs(data(4,:)-displacment(i)));
+    speed(i) = data(2,index);
     
-    
+   
 end
 
+colormap jet;
 
-
-
+scatter(x,y,50,speed)
 
 
 
