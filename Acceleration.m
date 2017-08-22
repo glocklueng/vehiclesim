@@ -1,7 +1,7 @@
 clear;
 
 sim.dt = 0.001;
-sim.len = 10;
+sim.len = 100;
 param.g = 9.81;
 param.air_p = 1.15; %in lincoln
 
@@ -10,7 +10,7 @@ report.data_a = 250;%[200,220,240,260,280,300,320,340];
 report.name_b = 'COF longitude';
 report.data_b = 1.4;%[1.2,1.3,1.4,1.5,1.6,1.7,1.8];
 report.name_c = 'Max torque';
-report.data_c = 700;%[400,450,500,550,600,650,700,750,800];
+report.data_c = 3;%[400,450,500,550,600,650,700,750,800];
 
 report.table = zeros(length(report.data_a)*length(report.data_b)*length(report.data_c),5);
 report.output_log = zeros(length(report.data_a)*length(report.data_b)*length(report.data_c),(sim.len/sim.dt));
@@ -23,17 +23,23 @@ for a = 1:length(report.data_a)
             car.cg = 0.3;
             car.wb = 1.6;
             car.swd = 0.5; %higher is more rearward
-            car.u_long = report.data_b(b); %1.4
-            car.u_lat = 1.5;
-            car.r_tire = 0.26;
-            car.n_mechanical = 0.95;
-            car.n_electrical = 0.92;
-            car.p_max = 80000*car.n_mechanical*car.n_electrical;
-            car.t_max = report.data_c(c);
             car.a_f = 1.1;
             car.c_df = 1.87;
             car.c_d = 1.3;
             car.cp = 0.5;
+            car.u_long = report.data_b(b); %1.4
+            car.u_lat = 1.5;
+            car.r_tire = 0.265;
+            %Motor and gearbox
+            car.n_mech = 0.95;
+            car.n_elec = 0.92;
+            car.p_max = 80000;
+            %Emrax 188 MV
+            car.nm = 2;
+            car.t_max = 90;
+            car.n_max = 6000;
+            car.gr = report.data_c(c);
+            car.v_max = (car.n_max/car.gr/60*2*pi)*car.r_tire;
 
             report.index = c+length(report.data_c)*(b-1)+length(report.data_c)*length(report.data_b)*(a-1);
             report.table(report.index,1) = report.data_a(a);
@@ -62,8 +68,11 @@ for a = 1:length(report.data_a)
                 calc.f_frict_r = car.u_long*(param.g*car.m*(car.swd)+calc.f_down_b*(car.cp)+calc.wt);
                 calc.f_frict   = car.u_long*(param.g*car.m+calc.f_down_p);
                 
-                calc.f_motor_b = min(car.t_max/car.r_tire, car.p_max/sim.state_b(2,i-1));
-                calc.f_motor_p = min(car.t_max/car.r_tire, car.p_max/sim.state_p(2,i-1));
+
+                calc.f_motor_p = min(car.nm*car.t_max*car.gr/car.r_tire,...
+                                    (car.p_max*car.n_mech*car.n_elec/sim.state_p(2,i-1))*(1.5^(1/(sim.state_p(2,i-1)-car.v_max))));
+                calc.f_motor_b = min(car.nm*car.t_max*car.gr/car.r_tire,...
+                                    (car.p_max*car.n_mech*car.n_elec/sim.state_b(2,i-1))*(1.5^(1/(sim.state_b(2,i-1)-car.v_max))));
                 
                 calc.f_cp_f = min(calc.f_frict_f);
                 calc.f_cp_r = min(calc.f_frict_r,calc.f_motor_b);

@@ -101,14 +101,21 @@ for a = 1:length(report.data_a)
             car.u_long = report.data_b(b);
             car.u_lat = 1.5;
             car.r_tire = 0.265;
-            car.n_mech = 0.95;
-            car.n_cont = 0.92;
-            car.n_motor = 1;
-            car.p_max = 80000;
-            car.t_max = report.data_c(c);
             car.a_f = 1.1;
             car.c_df = 1.87;
             car.c_d = 1.3;
+            %Motor and gearbox
+            car.n_mech = 0.95;
+            car.n_elec = 0.92;
+            car.p_max = 80000;
+            
+            %Emrax 188 MV
+            car.nm = 2;
+            car.t_max = 90;
+            car.n_max = 6000;
+            
+            car.gr = report.data_c(c);
+            car.v_max = (car.n_max/car.gr/60*2*pi)*car.r_tire;
             
             %Need to back calculate the max input segment speed for the
             %whole track. Start by looking at the max speed according to
@@ -207,7 +214,8 @@ for a = 1:length(report.data_a)
                         %calc.f_max_long_r = sqrt( ((car.u_long*calc.f_n_r)^2) - ((((calc.f_lat/2)^2)*(car.u_long^2)) / ((car.u_lat)^2)) );
                         
                         
-                        calc.f_max_motor = min(car.t_max/car.r_tire, car.p_max*car.n_mech*car.n_cont/sim.state_p(2));
+                        calc.f_max_motor = min(car.nm*car.t_max*car.gr/car.r_tire,...
+                        (car.p_max*car.n_mech*car.n_elec/sim.state_p(2))*(1.5^(1/(sim.state_p(2)-car.v_max))));
                         calc.f_drag  = (0.5*param.air_p*car.a_f*car.c_d*sim.state_p(2)^2);
                         calc.f_cp_r = min(calc.f_max_long/2,calc.f_max_motor);
 
