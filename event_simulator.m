@@ -72,7 +72,7 @@ track.traversed = 0;
 log.plot = 1;
 log.lap_data = zeros(5,200000);
 log.accel_plot = zeros(3,20/sim.dt);
-log.autocross_times = zeros(length(track.input(:,1)));
+log.autocross_times = zeros(length(track.input(:,1)),1);
 log.endurance_times = zeros(length(track.input(:,1)),2);
 log.endurance_power = zeros(length(track.input(:,1)),2);
 
@@ -96,7 +96,7 @@ for a = 1:length(report.data_a)
                 report.table(report.index,1) = report.data_a(a);
                 report.table(report.index,2) = report.data_b(b);
                 report.table(report.index,3) = report.data_c(c);
-                report.table(report.index,3) = report.data_d(d);
+                report.table(report.index,4) = report.data_d(d);
 
                 car.m = report.data_a(a);
                 car.cg = 0.3;
