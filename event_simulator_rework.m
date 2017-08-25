@@ -13,6 +13,9 @@ nonideal.uniform_braking = 1;
 %% load track data
 track_data
 
+%% load the governing equations
+governing_equations
+
 %% log
 
 log.plot = 1;
@@ -112,7 +115,14 @@ for car_i = 1:length(cars)
     %radius of curvature, then make sure that those speed can be
     %reached by reverse brakinging from each segment backwards
     %around the track until the steady state solution is found
-    eqn = ((0.5*car.m*v^2/r)/(0.5*car.u_lat*(car.m*param.g+0.5*param.air_p*car.a_f*car.c_df*v^2)))^2 + ((0.5*param.air_p*car.a_f*car.c_d*v^2)/(0.5*car.u_long*(car.m*param.g+0.5*param.air_p*car.a_f*car.c_df*v^2)))^2 == nonideal.corner_traction;
+    f_lat = car.swd * centripetal_force(car, v, r);
+    f_long = drag_force(car, param, v); %for now assuming
+    f_norm = static_weight_rear(car, param) + ...
+             down_force_rear(car, param, v) + ...
+             weight_transfer(car, f_long);
+         
+    eqn = traction_ellipse(car, f_lat, f_long, f_norm, nonideal.corner_traction);
+    
     eqn = solve(eqn,v);
     for i = 1:length(track.data(:,1))
         if track.data(i,2) ~= 0
@@ -393,7 +403,7 @@ for car_i = 1:length(cars)
     report.table(report.index,report.result_index+3) = sum(log.endurance_times(:,1))+sum(log.endurance_times(:,2))*(track.number_of_laps-1);
     report.table(report.index,report.result_index+4) = (sum(log.endurance_power(:,1))+sum(log.endurance_power(:,2))*(track.number_of_laps-1))/1000;
 
-    disp([num2str(report.index),' of ',num2str(length(report.table(:,1)))]);
+    disp([num2str(report.index),' of ',num2str(length(cars))]);
 end
 
 report.table = real(report.table);
