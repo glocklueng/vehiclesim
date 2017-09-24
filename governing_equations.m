@@ -4,11 +4,13 @@
 %force when going around a corner
 centripetal_force = @(car, velocity, radius) car.m * velocity^2 / radius;
 
-static_weight = @(mass, gravity, swd) mass * gravity * swd;
-static_weight_rear = @(car, param) static_weight(car.m, param.g, car.swd);
-static_weight_front = @(car, param) static_weight(car.m, param.g, 1-car.swd);
+static_weight = @(mass, gravity) mass * gravity;
+static_weight_total = @(car, param) static_weight(car.m, param.g);
+static_weight_rear = @(car, param) static_weight(car.m, param.g) * (car.swd);
+static_weight_front = @(car, param) static_weight(car.m, param.g) * (1-car.swd);
 
 down_force = @(rho, Af, Cdf, vel) 0.5 * rho * Af * Cdf * vel^2;
+down_force_total = @(car, param, vel) down_force(param.air_p, car.a_f, car.c_df, vel);
 down_force_rear  = @(car, param, vel) down_force(param.air_p, car.a_f, car.c_df, vel) * (car.cp);
 down_force_front = @(car, param, vel) down_force(param.air_p, car.a_f, car.c_df, vel) * (1-car.cp);
 

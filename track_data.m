@@ -61,8 +61,10 @@ track.data = zeros(length(track.input(:,1)),4);
 track.data(:,1:2) = track.input(:,2:3);
 track.traversed = 0;
 
+autotrack = track_segment(track.input);
+
 %% return the script, so not to plot graphs normally
-%return
+return
 
 %% plot the track data
 

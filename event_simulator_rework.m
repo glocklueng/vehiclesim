@@ -40,7 +40,7 @@ aero_c_drag = 0.96;
 efficiency_mechanical = 0.95;
 efficiency_electrical = 0.92;
 power_max = 80000;
-power_max_endurace_limit = [30000,35000,40000,45000,50000,55000,60000,65000,70000,75000,80000];
+power_max_endurace_limit = 3000;%[30000,35000,40000,45000,50000,55000,60000,65000,70000,75000,80000];
 motor_number = 2;
 motor_torque_max = 90; %actually 100
 motor_speed_max = 7000;
@@ -77,34 +77,35 @@ for car_i = 1:length(cars)
     %Set and record parameters
     report.index = report.index + 1;
 
-    %==============================================================
-    %Acceleration Event
-    %==============================================================
-    sim.state_p = [0;0;0];%initialize to zero speed
-    sim.state_index_f = 1;
-    sim.state_c = sim.state_p;
-
-    while sim.state_c(3) < 75
-
-        calc.f_down  = (0.5*param.air_p*car.a_f*car.c_df*sim.state_p(2)^2);
-        calc.f_drag  = (0.5*param.air_p*car.a_f*car.c_d *sim.state_p(2)^2);
-        calc.wt = car.m*sim.state_p(1)*car.cg/car.wb;
-        calc.f_frict_f = car.u_long*(param.g*car.m*(1-car.swd)+calc.f_down*(1-car.cp)-calc.wt);
-        calc.f_frict_r = car.u_long*(param.g*car.m*(car.swd)+calc.f_down*(car.cp)+calc.wt);
-        calc.f_max_motor = min(car.nm*car.t_max*car.gr/car.r_tire,...
-        (car.p_max*car.n_mech*car.n_elec/sim.state_p(2))*(1.5^(1/(sim.state_p(2)-car.v_max))));
-        calc.f_cp_r = min(calc.f_frict_r,calc.f_max_motor);
-
-        sim.state_c(1) = (calc.f_cp_r-calc.f_drag)/car.m;
-        sim.state_c(2) = sim.state_p(2) + sim.state_c(1)*sim.dt;
-        sim.state_c(3) = sim.state_p(3) + sim.state_c(2)*sim.dt;
-        if log.plot == 1
-            log.accel_data(:,sim.state_index_f) = sim.state_c;
-            sim.state_index_f = sim.state_index_f + 1;
-        end
-        sim.state_p = sim.state_c;
-    end
-    report.table(report.index,report.result_index+1) = sim.state_index_f/1000;
+    %should be generalized with the rest of the track event
+%     %==============================================================
+%     %Acceleration Event
+%     %==============================================================
+%     sim.state_p = [0;0;0];%initialize to zero speed
+%     sim.state_index_f = 1;
+%     sim.state_c = sim.state_p;
+% 
+%     while sim.state_c(3) < 75
+% 
+%         calc.f_down  = (0.5*param.air_p*car.a_f*car.c_df*sim.state_p(2)^2);
+%         calc.f_drag  = (0.5*param.air_p*car.a_f*car.c_d *sim.state_p(2)^2);
+%         calc.wt = car.m*sim.state_p(1)*car.cg/car.wb;
+%         calc.f_frict_f = car.u_long*(param.g*car.m*(1-car.swd)+calc.f_down*(1-car.cp)-calc.wt);
+%         calc.f_frict_r = car.u_long*(param.g*car.m*(car.swd)+calc.f_down*(car.cp)+calc.wt);
+%         calc.f_max_motor = min(car.nm*car.t_max*car.gr/car.r_tire,...
+%         (car.p_max*car.n_mech*car.n_elec/sim.state_p(2))*(1.5^(1/(sim.state_p(2)-car.v_max))));
+%         calc.f_cp_r = min(calc.f_frict_r,calc.f_max_motor);
+% 
+%         sim.state_c(1) = (calc.f_cp_r-calc.f_drag)/car.m;
+%         sim.state_c(2) = sim.state_p(2) + sim.state_c(1)*sim.dt;
+%         sim.state_c(3) = sim.state_p(3) + sim.state_c(2)*sim.dt;
+%         if log.plot == 1
+%             log.accel_data(:,sim.state_index_f) = sim.state_c;
+%             sim.state_index_f = sim.state_index_f + 1;
+%         end
+%         sim.state_p = sim.state_c;
+%     end
+%     report.table(report.index,report.result_index+1) = sim.state_index_f/1000;
 
 
     %==============================================================
@@ -122,8 +123,8 @@ for car_i = 1:length(cars)
              weight_transfer(car, f_long);
          
     eqn = traction_ellipse(car, f_lat, f_long, f_norm, nonideal.corner_traction);
-    
     eqn = solve(eqn,v);
+    
     for i = 1:length(track.data(:,1))
         if track.data(i,2) ~= 0
             track.data(i,3) = max(real(double(subs(eqn,r,track.data(i,2)))));
