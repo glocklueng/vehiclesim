@@ -8,13 +8,15 @@ function [ solved_track ] = track_max_speeds( car, param, tracks, sim )
 
 syms r v;
 
+governing_equations; %load those functions
+
 f_lat = car.swd * centripetal_force(car, v, r);
 f_long = drag_force(car, param, v); %for now assuming
 f_norm = static_weight_rear(car, param) + ...
          down_force_rear(car, param, v) + ...
          weight_transfer(car, f_long);
 
-eqn = traction_ellipse(car, f_lat, f_long, f_norm, nonideal.corner_traction);
+eqn = traction_ellipse(car, f_lat, f_long, f_norm, 1);
 eqn = solve(eqn,v);
 
 t_len = length(tracks); %cause i call it so often, safe a few strokes
@@ -52,26 +54,11 @@ for i = (t_len-1):-1:1
         s_c.vel = v_max_n;
         s_c.pos = tracks(i_c).arc_length;
         
-        s_p = s_c; %we will change one state and update it
-        
-        while s_p.pos > 0
-            
-            f_lat = centripetal_force(car, s_c.vel, tracks(i_c).radius);
-            f_n = static_weight(car, param) + ...
-                  down_force_total(car, param, s_c.vel);
-            
-            % rearange the ellipis equation to solve for maximum f_long
-            f_long_max = sqrt((car.u_long*f_n)^2 - (f_lat*car.u_long/car.u_lat)^2);
-            f_drag = drag_force(car, param, s_c.vel);
-            
-            %this can be ode45'ed or something similar in the future
-            %calculate the dt previous state
-            s_p.acc = (-f_long_max-f_drag)/car.m;
-            s_p.vel = s_c.vel - s_p.acc*sim.dt;
-            s_p.pos = s_c.pos - s_p.vel*sim.dt;
-            
-            % update the current state with what we calculated
-            s_c = s_p;
+        dir = -1; %we are simulating backwards
+        state_array = [s_c.acc, s_c.vel, s_c.pos];
+        while s_c.pos > 0
+            s_c = motion_sim(car, param, sim, tracks(i_c), dir, s_c);
+            state_array = [state_array; s_c.acc, s_c.vel, s_c.pos];
         end
         %update our required speed for the entrence of this segment
         %to ensure that we can brake for the next one.
@@ -79,6 +66,7 @@ for i = (t_len-1):-1:1
         %if it is, then while calculating the friction on the tire we
         %messed up
         tracks(i_c).max_vel = min(tracks(i_c).max_vel, s_c.vel);
+        tracks(i_c).state_brake = state_array;
         
     end
     

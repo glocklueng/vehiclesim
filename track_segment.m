@@ -15,12 +15,16 @@ classdef track_segment
         %calculated values
         max_vel_radius %due to radius
         max_vel %due to the shape of the segments in front and braking
+        
+        %state array for braking, and then just driving though the track
+        state_brake;
+        state_drive;
     end
     
     methods
         function obj = track_segment(track_array)
             if nargin ~= 0
-                l = length(track_array);
+                l = size(track_array,1);
                 obj(l) = track_segment;
                 for i = 1:l
                     obj(i).type = track_array(i, 1);

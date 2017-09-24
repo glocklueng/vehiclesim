@@ -21,3 +21,4 @@ weight_transfer = @(car, F_long) F_long * car.cg / car.wb;
 
 %an ellipse equation for combining available traction on the tire
 traction_ellipse = @(car, F_lat, F_long, F_norm, scale) (F_lat/(car.u_lat * F_norm))^2 + (F_long/(car.u_long * F_norm)) == (1/scale)^2;
+
