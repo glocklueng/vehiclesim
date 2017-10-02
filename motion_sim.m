@@ -27,6 +27,16 @@ f_drag = drag_force(car, param, s_c.vel);
 %calculate the dt previous state
 s_n.acc = (dir*f_long_max - f_drag)/car.m;
 s_n.vel = s_c.vel + dir*s_n.acc*sim.dt;
+if s_n.vel > track.max_vel
+    %this means that next iteration is screwed cause our acceleration was
+    %too hard
+    s_n.vel = track.max_vel; %we are limited to this speed
+    
+    %calculate the acceleration that would get us to that speed
+    %that acceleration is lower than the one we just calculated
+    s_n.acc = (s_n.vel - s_c.vel)/(dir*sim.dt);
+end
+
 s_n.pos = s_c.pos + dir*s_n.vel*sim.dt;
  
 

@@ -77,11 +77,10 @@ for car_i = 1:length(cars)
     %Set and record parameters
     report.index = report.index + 1;
     
-    %brake backwards and find the max speeds
+    %brake backwards and find the max speeds and then drive through it
     autotrack = track_max_speeds( car, param, autotrack, sim );
     
-    %now drive forward through the track
-
+    
     disp([num2str(report.index),' of ',num2str(length(cars))]);
 end
 
