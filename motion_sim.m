@@ -35,10 +35,16 @@ if s_n.vel > track.max_vel
     %calculate the acceleration that would get us to that speed
     %that acceleration is lower than the one we just calculated
     s_n.acc = (s_n.vel - s_c.vel)/(dir*sim.dt);
+    
+    %calculate the f_long_max too
+    f_long_max = (s_n.acc*car.m + f_drag);
 end
 
 s_n.pos = s_c.pos + dir*s_n.vel*sim.dt;
- 
+
+% now calculate torque and power
+s_n.torque = dir*f_long_max * car.r_tire;
+s_n.power = f_long_max * s_n.vel;
 
 end
 

@@ -1,4 +1,4 @@
-function [ ] = plot_track_rework( tracks )
+function [ ] = plot_track_rework( tracks, param )
 %PLOT_TRACK_REWORK Summary of this function goes here
 
 
@@ -16,6 +16,17 @@ dir = [0, 1];
 
 pos_cur = [0, 0];
 pos_next = [0, 0];
+
+%get maximum value of param
+max_val = 0; %hardcoded for now
+for i=1:length(tracks)
+    track = tracks(i);
+    s = track.state_drive;
+    val = max([s.(param)]);
+    max_val = max(max_val, abs(val));
+end
+
+title(strcat('Track with:', param, '. Max val: ', num2str(max_val)));
 
 for i=1:length(tracks)
     %type, arc_length, radius = track.input(i,:); if only it was python...
@@ -37,19 +48,13 @@ for i=1:length(tracks)
         % plot as a line right now
         %for t=linspace(0, theta)
         for j=1:10:length(tracks(i).state_drive)
-            cur_state = tracks(i).state_drive(j, :);
+            cur_state = tracks(i).state_drive(j);
             
             %color based on breaking / acceleration
-            acc = cur_state(1);
-            color = [0, 0, 0];
-            if acc > 0 %green
-                color(2) = min(acc / 20, 1.0);
-            elseif acc < 0 %red
-                color(1) = min(-acc / 20, 1.0);
-            end
+            color = gen_color(cur_state, param, max_val);
             
             %rotation matrix to apply
-            ppn = pos_cur + dir*cur_state(3);
+            ppn = pos_cur + dir*cur_state.pos;
             line([ppp(1), ppn(1)], [ppp(2), ppn(2)], 'Color', color, 'LineWidth', 2.0);
             ppp = ppn;
         end
@@ -82,19 +87,13 @@ for i=1:length(tracks)
         % plot as a line right now
         %for t=linspace(0, theta)
         for j=1:10:length(tracks(i).state_drive)
-            cur_state = tracks(i).state_drive(j, :);
+            cur_state = tracks(i).state_drive(j);
             
             %the angle based on where we are
-            t = sign(theta)*cur_state(3) / tracks(i).radius;
+            t = sign(theta)*cur_state.pos / tracks(i).radius;
             
             %color based on breaking / acceleration
-            acc = cur_state(1);
-            color = [0, 0, 0];
-            if acc > 0 %green
-                color(2) = min(acc / 20, 1.0);
-            elseif acc < 0 %red
-                color(1) = min(-acc / 20, 1.0);
-            end
+            color = gen_color(cur_state, param, max_val);
             
             %rotation matrix to apply
             R = [cos(t) -sin(t); sin(t) cos(t)];

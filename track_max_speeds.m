@@ -42,6 +42,10 @@ for i = 1:t_len
 
 end
 
+%% define my state
+s_c = struct('acc',0,'vel',0,'pos',0,'torque',0,'power',0);
+
+
 %% break backwards through the track
 % iterate and calculate max velocity if you are trying to break
 % start one before the end, because the end doesn't depend on the next
@@ -68,10 +72,10 @@ for i = (t_len):-1:1
         s_c.pos = tracks(i_c).arc_length;
         
         dir = -1; %we are simulating backwards
-        state_array = [s_c.acc, s_c.vel, s_c.pos];
+        state_array = [s_c];
         while s_c.pos > 0
             s_c = motion_sim(car, param, sim, tracks(i_c), dir, s_c);
-            state_array = [s_c.acc, s_c.vel, s_c.pos; state_array];
+            state_array = [s_c; state_array];
             %state array we prepend the data because we are driving
             %backwards
         end
@@ -88,13 +92,13 @@ for i = (t_len):-1:1
         s_c.acc = 0;
         s_c.vel = v_max_c;
         s_c.pos = tracks(i_c).arc_length;
-        state_array = [s_c.acc, s_c.vel, s_c.pos];
+        state_array = [s_c];
         
         %begining of the track
         s_c.acc = 0;
         s_c.vel = v_max_c;
         s_c.pos = 0;
-        state_array = [s_c.acc, s_c.vel, s_c.pos; state_array];
+        state_array = [s_c; state_array];
         
         tracks(i_c).state_brake = state_array;
     end
@@ -125,18 +129,18 @@ for i = 1:t_len
     while s_c.pos < tracks(i_c).arc_length
         %insert state array now, cause i want to check for pos < length
         %after computing it
-        state_array = [state_array; s_c.acc, s_c.vel, s_c.pos];
+        state_array = [state_array; s_c];
         s_c = motion_sim(car, param, sim, tracks(i_c), dir, s_c);
         
         %find the appropriate index in the breaking states
         for i_b = i_b:size(tracks(i_c).state_brake,1)
-            if s_c.pos < tracks(i_c).state_brake(i_b, 3)
+            if s_c.pos < tracks(i_c).state_brake(i_b).pos
                 i_b = i_b - 1;
                 break;
             end
         end
         
-        if s_c.vel > tracks(i_c).state_brake(i_b, 2)
+        if s_c.vel > tracks(i_c).state_brake(i_b).vel
             %we are now going faster than what we should be for the braking
             %the rest of the track segment we will follow the breaking curve
             state_array = [state_array; tracks(i_c).state_brake(i_b:end, :)];
